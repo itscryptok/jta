@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>JTA — Two Lives. One City. | Open-World Driving Game</title>
+<meta name="description" content="JTA — Two lives. One city. A free open-world driving game in your browser: switch between Nova and Doc, steal cars, run missions, dodge the cops, and explore a living city. No download, no sign-up.">
+<meta name="keywords" content="JTA, open world game, driving game, top-down GTA-style game, browser game, Nova, Doc">
+<meta name="author" content="JTA">
+<meta name="theme-color" content="#0b0e14">
+<link rel="canonical" href="https://jta.onrender.com/">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="favicon.svg">
+<link rel="preload" as="image" href="assets/nova-full.jpg">
+<link rel="preload" as="image" href="assets/doc-full.jpg">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JTA">
+<meta property="og:title" content="JTA — Two Lives. One City.">
+<meta property="og:description" content="A free open-world driving game in your browser. Switch between Nova and Doc, steal cars, run missions, dodge the cops, and explore a living city.">
+<meta property="og:url" content="https://jta.onrender.com/">
+<meta property="og:image" content="https://jta.onrender.com/assets/nova-full.jpg">
+<meta property="og:image:alt" content="Nova, the half-cyborg heroine of JTA">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="JTA — Two Lives. One City.">
+<meta name="twitter:description" content="A free open-world driving game in your browser. Switch between Nova and Doc, steal cars, run missions, dodge the cops.">
+<meta name="twitter:image" content="https://jta.onrender.com/assets/nova-full.jpg">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "JTA",
+  "description": "JTA — Two lives. One city. A free open-world top-down driving game in your browser. Switch between Nova and Doc, steal cars, run missions, dodge the cops, and explore a living city.",
+  "url": "https://jta.onrender.com/",
+  "image": "https://jta.onrender.com/assets/nova-full.jpg",
+  "applicationCategory": "Game",
+  "operatingSystem": "Any modern web browser",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "genre": ["Action", "Open World", "Driving"],
+  "playMode": "SinglePlayer",
+  "character": [
+    { "@type": "Person", "name": "Nova" },
+    { "@type": "Person", "name": "Doc" }
+  ]
+}
+</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="game-area">
+  <canvas id="game"></canvas>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div id="hud-left">
+      <img id="hud-portrait" src="assets/nova-face.jpg" alt="Active character portrait">
+      <div id="hud-ident">
+        <div id="hud-name">NOVA</div>
+        <div id="hud-cash">$0</div>
+      </div>
+    </div>
+    <div id="hud-center">
+      <div id="hud-objective">—</div>
+      <div id="hud-sub">Missions: 0</div>
+    </div>
+    <div id="hud-right">
+      <div id="hud-stars" aria-label="Wanted level">☆☆☆☆☆</div>
+      <div id="hud-clock">09:00</div>
+      <div id="hud-speed" class="hidden">0 mph</div>
+    </div>
+  </div>
+
+  <!-- Minimap -->
+  <canvas id="minimap" width="168" height="132" class="hidden"></canvas>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden"></div>
+
+  <!-- Touch controls -->
+  <div id="touch-controls" class="hidden">
+    <div id="joystick" aria-label="Movement joystick">
+      <div id="joy-knob"></div>
+    </div>
+    <div id="buttons">
+      <div class="btn-row">
+        <button class="tbtn" id="btn-map" type="button">MAP</button>
+        <button class="tbtn" id="btn-pause" type="button">II</button>
+      </div>
+      <div class="btn-row">
+        <button class="tbtn" id="btn-switch" type="button">SWITCH</button>
+        <button class="tbtn foot-only" id="btn-sprint" type="button">SPRINT</button>
+        <button class="tbtn car-only" id="btn-horn" type="button">HORN</button>
+      </div>
+      <div class="btn-row">
+        <button class="tbtn big foot-only" id="btn-action" type="button">ACTION</button>
+        <button class="tbtn big car-only" id="btn-gas" type="button">GAS</button>
+        <button class="tbtn big car-only" id="btn-brake" type="button">BRAKE</button>
+        <button class="tbtn car-only" id="btn-exit" type="button">EXIT CAR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keyboard hints (desktop) -->
+  <div id="keys-hint" class="hidden">WASD move &middot; E action &middot; Shift sprint &middot; Space brake &middot; Tab switch &middot; M map &middot; H horn &middot; Esc pause</div>
+
+  <!-- Fade transition -->
+  <div id="fade"></div>
+
+  <!-- START SCREEN -->
+  <div id="start-screen">
+    <div class="start-inner">
+      <h1 class="logo">JTA</h1>
+      <p class="tagline">Two lives. One city.</p>
+      <p class="start-sub">Pick your character to start. You can switch between them anytime.</p>
+      <div class="char-cards">
+        <button class="char-card" id="pick-nova" type="button">
+          <img src="assets/nova-full.jpg" alt="Nova — half-cyborg, faster sprint">
+          <span class="char-name">NOVA</span>
+          <span class="char-perk">Faster sprint</span>
+        </button>
+        <button class="char-card" id="pick-doc" type="button">
+          <img src="assets/doc-full.jpg" alt="Doc — older man with glasses, better car handling">
+          <span class="char-name">DOC</span>
+          <span class="char-perk">Better car handling</span>
+        </button>
+      </div>
+      <div class="controls-help">
+        <strong>Controls</strong>
+        <span class="kb">WASD / arrows — move &amp; steer &middot; E — action / enter car &middot; Shift — sprint &middot; Space — brake &middot; Tab — switch character &middot; M — map &middot; H — horn &middot; Esc — pause</span>
+        <span class="tc">Touch — left joystick to move &amp; steer, right buttons to drive, act and switch.</span>
+      </div>
+      <p class="start-note">Free to play in your browser. Progress saves on this device.</p>
+    </div>
+  </div>
+
+  <!-- PAUSE MENU -->
+  <div id="pause-menu" class="overlay hidden">
+    <div class="panel">
+      <h2>Paused</h2>
+      <div class="pause-char">
+        <img id="pause-portrait" src="assets/nova-face.jpg" alt="Active character">
+        <div><div id="pause-name">NOVA</div><div id="pause-cash">$0</div></div>
+      </div>
+      <button class="menu-btn" id="btn-resume" type="button">Resume</button>
+      <button class="menu-btn" id="btn-restart" type="button">Restart run</button>
+      <label class="touch-toggle">Touch controls
+        <select id="touch-mode">
+          <option value="auto">Auto</option>
+          <option value="on">Always on</option>
+          <option value="off">Always off</option>
+        </select>
+      </label>
+      <div class="controls-help">
+        <strong>Controls</strong>
+        <span class="kb">WASD / arrows — move &amp; steer &middot; E — action / enter car &middot; Shift — sprint &middot; Space — brake &middot; Tab — switch character &middot; M — map &middot; H — horn &middot; Esc — pause</span>
+        <span class="tc">Touch — left joystick to move &amp; steer, right buttons to drive, act and switch.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULL MAP -->
+  <div id="map-overlay" class="overlay hidden">
+    <div class="panel map-panel">
+      <div class="map-head"><h2>City Map</h2><button class="menu-btn small" id="btn-map-close" type="button">X</button></div>
+      <canvas id="fullmap" width="640" height="480"></canvas>
+      <div class="legend">
+        <span><i class="sw you"></i>You</span>
+        <span><i class="sw other"></i>Other character</span>
+        <span><i class="sw mission"></i>Mission</span>
+        <span><i class="sw car"></i>Car</span>
+        <span><i class="sw police"></i>Police</span>
+        <span><i class="sw park"></i>Park</span>
+        <span><i class="sw water"></i>Water</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUSTED -->
+  <div id="busted-screen" class="overlay hidden">
+    <div class="panel busted-panel">
+      <h2 class="busted-title">BUSTED</h2>
+      <p id="busted-text">The cops caught up with you.</p>
+      <button class="menu-btn" id="btn-busted-ok" type="button">Back on the streets</button>
+    </div>
+  </div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>

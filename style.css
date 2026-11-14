@@ -1,0 +1,158 @@
+/* JTA — top-down open-city game. Vanilla CSS, no dependencies. */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0; padding: 0; height: 100%; overflow: hidden;
+  background: #0b0e14; color: #eef1f6;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overscroll-behavior: none;
+}
+#game-area {
+  position: fixed; inset: 0; width: 100vw; height: 100dvh;
+  overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none;
+  background: #0b0e14;
+}
+#game { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.hidden { display: none !important; }
+
+/* ---------- HUD ---------- */
+#hud {
+  position: absolute; top: calc(10px + env(safe-area-inset-top)); left: calc(10px + env(safe-area-inset-left));
+  right: calc(10px + env(safe-area-inset-right));
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  pointer-events: none; z-index: 20;
+}
+#hud-left { display: flex; align-items: center; gap: 10px; background: rgba(8,10,16,.72); border: 1px solid rgba(255,255,255,.14); border-radius: 12px; padding: 6px 12px 6px 6px; }
+#hud-portrait { width: 48px; height: 48px; border-radius: 9px; object-fit: cover; border: 2px solid #f5c518; }
+#hud-name { font-weight: 800; letter-spacing: .12em; font-size: 15px; }
+#hud-cash { color: #7ee787; font-weight: 700; font-size: 15px; }
+#hud-center { text-align: center; background: rgba(8,10,16,.72); border: 1px solid rgba(255,255,255,.14); border-radius: 12px; padding: 8px 14px; max-width: 44vw; }
+#hud-objective { font-weight: 700; font-size: 14px; }
+#hud-sub { font-size: 12px; color: #b9c0cc; margin-top: 2px; }
+#hud-right { text-align: right; background: rgba(8,10,16,.72); border: 1px solid rgba(255,255,255,.14); border-radius: 12px; padding: 8px 12px; }
+#hud-stars { color: #ffd23f; font-size: 17px; letter-spacing: 2px; }
+#hud-clock { font-size: 14px; font-weight: 700; }
+#hud-speed { font-size: 13px; color: #9fd8ff; font-weight: 700; }
+
+#minimap {
+  position: absolute; top: calc(86px + env(safe-area-inset-top)); right: calc(10px + env(safe-area-inset-right));
+  width: 168px; height: 132px; border-radius: 10px; border: 2px solid rgba(255,255,255,.25);
+  background: #10141c; z-index: 20; pointer-events: none;
+}
+#toast {
+  position: absolute; left: 50%; top: 24%; transform: translateX(-50%);
+  background: rgba(8,10,16,.85); border: 1px solid rgba(255,255,255,.2); color: #fff;
+  padding: 12px 20px; border-radius: 12px; font-weight: 700; font-size: 16px; z-index: 40;
+  text-align: center; max-width: 86vw; pointer-events: none;
+}
+#fade { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; transition: opacity .22s ease; z-index: 60; }
+#fade.on { opacity: 1; }
+
+#keys-hint {
+  position: absolute; bottom: calc(10px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
+  background: rgba(8,10,16,.6); border-radius: 999px; padding: 6px 14px; font-size: 12px; color: #c6cdd8;
+  z-index: 15; pointer-events: none; white-space: nowrap;
+}
+
+/* ---------- Touch controls ---------- */
+#touch-controls { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
+#joystick {
+  position: absolute; left: calc(18px + env(safe-area-inset-left)); bottom: calc(24px + env(safe-area-inset-bottom));
+  width: 128px; height: 128px; border-radius: 50%;
+  background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.28);
+  pointer-events: auto; touch-action: none;
+}
+#joy-knob {
+  position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px;
+  border-radius: 50%; background: rgba(255,255,255,.35); border: 2px solid rgba(255,255,255,.55);
+  transform: translate(0px, 0px);
+}
+#buttons {
+  position: absolute; right: calc(14px + env(safe-area-inset-right)); bottom: calc(20px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 10px; align-items: flex-end; pointer-events: none;
+}
+.btn-row { display: flex; gap: 10px; }
+.tbtn {
+  pointer-events: auto; touch-action: none; border: 2px solid rgba(255,255,255,.35);
+  background: rgba(10,14,22,.55); color: #fff; border-radius: 50%;
+  width: 62px; height: 62px; font-size: 12px; font-weight: 800; letter-spacing: .04em;
+  display: flex; align-items: center; justify-content: center; text-align: center; padding: 4px;
+}
+.tbtn.big { width: 76px; height: 76px; font-size: 13px; }
+.tbtn:active, .tbtn.held { background: rgba(245,197,24,.75); color: #111; border-color: #f5c518; }
+#btn-action, #btn-gas { background: rgba(34,140,70,.6); border-color: rgba(126,231,135,.7); }
+#btn-brake, #btn-exit { background: rgba(160,40,40,.6); border-color: rgba(255,120,120,.7); }
+/* Button set swaps by driving state */
+#touch-controls.foot .car-only { display: none; }
+#touch-controls.driving .foot-only { display: none; }
+
+/* ---------- Start screen ---------- */
+#start-screen {
+  position: absolute; inset: 0; z-index: 50; overflow-y: auto;
+  background: radial-gradient(1200px 700px at 50% -10%, #1d2b45 0%, #0b0e14 60%);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.start-inner { max-width: 760px; width: 100%; text-align: center; margin: auto; }
+.logo {
+  margin: 0; font-size: clamp(64px, 16vw, 120px); line-height: .9; font-weight: 900; letter-spacing: .06em;
+  background: linear-gradient(180deg, #fff 20%, #f5c518 55%, #e5484d 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-shadow: 0 0 60px rgba(245,197,24,.25);
+}
+.tagline { font-size: clamp(18px, 4vw, 26px); font-weight: 700; letter-spacing: .08em; margin: 6px 0 4px; }
+.start-sub { color: #b9c0cc; margin: 0 0 18px; }
+.char-cards { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.char-card {
+  background: #141a26; border: 2px solid rgba(255,255,255,.16); border-radius: 16px;
+  padding: 10px; width: min(300px, 42vw); min-width: 180px; cursor: pointer; color: #fff;
+  display: flex; flex-direction: column; gap: 6px; align-items: center;
+  transition: transform .12s ease, border-color .12s ease;
+}
+.char-card:hover, .char-card:focus-visible { transform: translateY(-3px); border-color: #f5c518; outline: none; }
+.char-card img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; object-position: top center; border-radius: 10px; }
+.char-name { font-size: 22px; font-weight: 900; letter-spacing: .14em; }
+.char-perk { color: #7ee787; font-size: 13px; font-weight: 700; }
+.controls-help { margin: 20px auto 0; max-width: 640px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 12px 16px; font-size: 13px; color: #c6cdd8; line-height: 1.6; }
+.controls-help strong { display: block; color: #fff; margin-bottom: 4px; letter-spacing: .08em; }
+.start-note { color: #8b93a1; font-size: 12px; margin: 14px 0 0; }
+
+/* ---------- Overlays / panels ---------- */
+.overlay {
+  position: absolute; inset: 0; z-index: 55; background: rgba(5,7,12,.72);
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+}
+.panel { background: #141a26; border: 1px solid rgba(255,255,255,.16); border-radius: 16px; padding: 22px; width: min(480px, 94vw); text-align: center; max-height: 92dvh; overflow-y: auto; }
+.panel h2 { margin: 0 0 14px; letter-spacing: .1em; }
+.pause-char { display: flex; gap: 12px; align-items: center; justify-content: center; margin-bottom: 16px; }
+.pause-char img { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; border: 2px solid #f5c518; }
+#pause-name { font-weight: 900; letter-spacing: .12em; text-align: left; }
+#pause-cash { color: #7ee787; font-weight: 700; text-align: left; }
+.menu-btn {
+  display: block; width: 100%; margin: 8px 0; padding: 13px; font-size: 16px; font-weight: 800;
+  color: #111; background: #f5c518; border: none; border-radius: 12px; cursor: pointer;
+}
+.menu-btn.small { width: auto; padding: 8px 14px; margin: 0; font-size: 14px; }
+.menu-btn:hover { filter: brightness(1.08); }
+.touch-toggle { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 14px 0 4px; font-weight: 700; font-size: 14px; }
+.touch-toggle select { background: #0b0e14; color: #fff; border: 1px solid rgba(255,255,255,.25); border-radius: 8px; padding: 8px; font-size: 14px; }
+.map-panel { width: min(720px, 96vw); }
+.map-head { display: flex; justify-content: space-between; align-items: center; }
+.map-head h2 { margin: 0; }
+#fullmap { width: 100%; height: auto; border-radius: 10px; border: 2px solid rgba(255,255,255,.2); background: #10141c; margin: 12px 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 14px; justify-content: center; font-size: 12px; color: #c6cdd8; }
+.legend .sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+.sw.you { background: #fff; } .sw.other { background: #22d3ee; } .sw.mission { background: #f5c518; }
+.sw.car { background: #9aa3ad; } .sw.police { background: #3b82f6; } .sw.park { background: #3f7a3a; } .sw.water { background: #1d4e89; }
+.busted-panel { border-color: rgba(229,72,77,.6); }
+.busted-title { color: #e5484d; font-size: 44px; letter-spacing: .12em; margin-bottom: 6px; }
+
+/* Small screens: shrink HUD + minimap so the game stays playable */
+@media (max-width: 640px) {
+  #hud-center { display: none; }
+  #minimap { width: 120px; height: 94px; top: calc(76px + env(safe-area-inset-top)); }
+  #hud-portrait { width: 40px; height: 40px; }
+  #joystick { width: 112px; height: 112px; }
+  .tbtn { width: 56px; height: 56px; font-size: 11px; }
+  .tbtn.big { width: 68px; height: 68px; }
+  #keys-hint { display: none; }
+}

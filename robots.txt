@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://jta.onrender.com/sitemap.xml
+Sitemap: https://jta-f3v3.onrender.com/sitemap.xml

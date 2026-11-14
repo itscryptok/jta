@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>JTA — Two Lives. One City. | Open-World Driving Game</title>
-<meta name="description" content="JTA — Two lives. One city. A free open-world driving game in your browser: switch between Nova and Doc, steal cars, run missions, dodge the cops, and explore a living city. No download, no sign-up.">
-<meta name="keywords" content="JTA, open world game, driving game, top-down GTA-style game, browser game, Nova, Doc">
+<meta name="description" content="JTA — Two lives. One city. A free 3D open-world driving game in your browser: switch between Nova and Doc, steal cars, run missions, haul cargo, dodge the cops, and explore a living night city. No download, no sign-up.">
+<meta name="keywords" content="JTA, open world game, driving game, 3D browser game, night city game, GTA-style game, Nova, Doc">
 <meta name="author" content="JTA">
 <meta name="theme-color" content="#0b0e14">
-<link rel="canonical" href="https://jta.onrender.com/">
+<link rel="canonical" href="https://jta-f3v3.onrender.com/">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="favicon.svg">
 <link rel="preload" as="image" href="assets/nova-full.jpg">
@@ -16,22 +16,22 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="JTA">
 <meta property="og:title" content="JTA — Two Lives. One City.">
-<meta property="og:description" content="A free open-world driving game in your browser. Switch between Nova and Doc, steal cars, run missions, dodge the cops, and explore a living city.">
-<meta property="og:url" content="https://jta.onrender.com/">
-<meta property="og:image" content="https://jta.onrender.com/assets/nova-full.jpg">
+<meta property="og:description" content="A free 3D open-world driving game in your browser. Switch between Nova and Doc, steal cars, run missions, haul cargo, dodge the cops, and explore a living night city.">
+<meta property="og:url" content="https://jta-f3v3.onrender.com/">
+<meta property="og:image" content="https://jta-f3v3.onrender.com/assets/nova-full.jpg">
 <meta property="og:image:alt" content="Nova, the half-cyborg heroine of JTA">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="JTA — Two Lives. One City.">
-<meta name="twitter:description" content="A free open-world driving game in your browser. Switch between Nova and Doc, steal cars, run missions, dodge the cops.">
-<meta name="twitter:image" content="https://jta.onrender.com/assets/nova-full.jpg">
+<meta name="twitter:description" content="A free 3D open-world driving game in your browser. Switch between Nova and Doc, steal cars, run missions, haul cargo, dodge the cops.">
+<meta name="twitter:image" content="https://jta-f3v3.onrender.com/assets/nova-full.jpg">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "VideoGame",
   "name": "JTA",
-  "description": "JTA — Two lives. One city. A free open-world top-down driving game in your browser. Switch between Nova and Doc, steal cars, run missions, dodge the cops, and explore a living city.",
-  "url": "https://jta.onrender.com/",
-  "image": "https://jta.onrender.com/assets/nova-full.jpg",
+  "description": "JTA — Two lives. One city. A free 3D open-world driving game in your browser. Switch between Nova and Doc, steal cars, run missions, haul cargo, dodge the cops, and explore a living night city.",
+  "url": "https://jta-f3v3.onrender.com/",
+  "image": "https://jta-f3v3.onrender.com/assets/nova-full.jpg",
   "applicationCategory": "Game",
   "operatingSystem": "Any modern web browser",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -56,6 +56,7 @@
       <div id="hud-ident">
         <div id="hud-name">NOVA</div>
         <div id="hud-cash">$0</div>
+        <div id="health-bar" aria-label="Health"><div id="health-fill"></div></div>
       </div>
     </div>
     <div id="hud-center">
@@ -69,11 +70,24 @@
     </div>
   </div>
 
-  <!-- Minimap -->
-  <canvas id="minimap" width="168" height="132" class="hidden"></canvas>
+  <!-- Minimap (tap to drop a waypoint pin) -->
+  <canvas id="minimap" width="168" height="132" class="hidden" title="Tap to drop a waypoint pin"></canvas>
+
+  <!-- Cop warning -->
+  <div id="cop-warning" class="hidden">COPS ARE ON YOU — MOVE!</div>
 
   <!-- Toast -->
   <div id="toast" class="hidden"></div>
+
+  <!-- Dialogue one-liners -->
+  <div id="dialogue" class="hidden"></div>
+
+  <!-- Off-screen direction arrows -->
+  <div id="arrow-mission" class="edge-arrow hidden">➤</div>
+  <div id="arrow-pin" class="edge-arrow pin hidden">➤</div>
+
+  <!-- WebGL fallback -->
+  <div id="nogl" class="hidden">This game needs WebGL. Please try a different browser or device.</div>
 
   <!-- Touch controls -->
   <div id="touch-controls" class="hidden">
@@ -96,11 +110,16 @@
         <button class="tbtn big car-only" id="btn-brake" type="button">BRAKE</button>
         <button class="tbtn car-only" id="btn-exit" type="button">EXIT CAR</button>
       </div>
+      <div class="btn-row">
+        <button class="tbtn sm foot-only" id="btn-punch" type="button">PUNCH</button>
+        <button class="tbtn sm foot-only" id="btn-haul" type="button">HAUL</button>
+        <button class="tbtn sm" id="btn-call" type="button">CALL</button>
+      </div>
     </div>
   </div>
 
   <!-- Keyboard hints (desktop) -->
-  <div id="keys-hint" class="hidden">WASD move &middot; E action &middot; Shift sprint &middot; Space brake &middot; Tab switch &middot; M map &middot; H horn &middot; Esc pause</div>
+  <div id="keys-hint" class="hidden">WASD move &middot; E action &middot; Space punch / brake &middot; Shift sprint &middot; G haul &middot; C call &middot; Tab switch &middot; M map &middot; H horn &middot; Esc pause</div>
 
   <!-- Fade transition -->
   <div id="fade"></div>
@@ -125,8 +144,8 @@
       </div>
       <div class="controls-help">
         <strong>Controls</strong>
-        <span class="kb">WASD / arrows — move &amp; steer &middot; E — action / enter car &middot; Shift — sprint &middot; Space — brake &middot; Tab — switch character &middot; M — map &middot; H — horn &middot; Esc — pause</span>
-        <span class="tc">Touch — left joystick to move &amp; steer, right buttons to drive, act and switch.</span>
+        <span class="kb">WASD / arrows — move &amp; steer &middot; E — action / enter car &middot; Space — punch (brake in car) &middot; Shift — sprint &middot; G — haul crate &middot; C — call partner &middot; Tab — switch character &middot; M — map &middot; H — horn &middot; Esc — pause</span>
+        <span class="tc">Touch — left joystick to move &amp; steer, right buttons to drive, punch, haul and switch. Drag the city to look around. Tap the minimap to drop a waypoint pin.</span>
       </div>
       <p class="start-note">Free to play in your browser. Progress saves on this device.</p>
     </div>
@@ -151,8 +170,8 @@
       </label>
       <div class="controls-help">
         <strong>Controls</strong>
-        <span class="kb">WASD / arrows — move &amp; steer &middot; E — action / enter car &middot; Shift — sprint &middot; Space — brake &middot; Tab — switch character &middot; M — map &middot; H — horn &middot; Esc — pause</span>
-        <span class="tc">Touch — left joystick to move &amp; steer, right buttons to drive, act and switch.</span>
+        <span class="kb">WASD / arrows — move &amp; steer &middot; E — action / enter car &middot; Space — punch (brake in car) &middot; Shift — sprint &middot; G — haul crate &middot; C — call partner &middot; Tab — switch character &middot; M — map &middot; H — horn &middot; Esc — pause</span>
+        <span class="tc">Touch — left joystick to move &amp; steer, right buttons to drive, punch, haul and switch. Drag the city to look around. Tap the minimap to drop a waypoint pin.</span>
       </div>
     </div>
   </div>
@@ -166,6 +185,9 @@
         <span><i class="sw you"></i>You</span>
         <span><i class="sw other"></i>Other character</span>
         <span><i class="sw mission"></i>Mission</span>
+        <span><i class="sw crate"></i>Crate</span>
+        <span><i class="sw drop"></i>Drop pad</span>
+        <span><i class="sw pin"></i>Waypoint</span>
         <span><i class="sw car"></i>Car</span>
         <span><i class="sw police"></i>Police</span>
         <span><i class="sw park"></i>Park</span>
@@ -182,7 +204,17 @@
       <button class="menu-btn" id="btn-busted-ok" type="button">Back on the streets</button>
     </div>
   </div>
+
+  <!-- WASTED -->
+  <div id="wasted-screen" class="overlay hidden">
+    <div class="panel wasted-panel">
+      <h2 class="wasted-title">WASTED</h2>
+      <p id="wasted-text">You took too much damage.</p>
+      <button class="menu-btn" id="btn-wasted-ok" type="button">Back on the streets</button>
+    </div>
+  </div>
 </div>
+<script src="vendor/three.min.js"></script>
 <script src="game.js"></script>
 </body>
 </html>
